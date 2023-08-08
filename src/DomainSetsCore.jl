@@ -28,6 +28,21 @@ const VectorDomain{T} = Domain{Vector{T}}
 "An `AbstractVectorDomain` is any domain whose eltype is `<:AbstractVector{T}`."
 const AbstractVectorDomain{T} = Domain{<:AbstractVector{T}}
 
+abstract type DomainStyle end
+
+"""
+    IsDomain()
+
+indicates it satisfies the domain interface, i.e. supports `in`.
+"""
+struct IsDomain <: DomainStyle end
+struct NotDomain <: DomainStyle end
+
+DomainStyle(::Type) = NotDomain()
+DomainStyle(::Type{<:Domain}) = IsDomain()
+DomainStyle(::Type{<:AbstractSet}) = IsDomain()
+DomainStyle(::Type{<:AbstractArray}) = IsDomain()
+
 
 """
 A reference to a domain.
