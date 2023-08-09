@@ -8,25 +8,9 @@ A domain is a set of elements that is possibly continuous.
 Examples may be intervals and triangles. These are geometrical shapes, but more
 generally a domain can be any type that supports `in`. Conceptually, a domain
 is the set of all elements `x` for which `in(x, domain)` returns true.
-
-A `Domain{T}` is a domain with elements of type `T`, in analogy with
-`AbstractSet{T}` and `AbstractVector{T}`. The `eltype` of a `Domain{T}` is `T`.
-However, unlike finite sets, the element type of a domain may be somewhat
-ambiguous. For example, the closed interval `1..2` contains any element `x` for
-which `1 <= x <= 2` is true, regardless of its type. Still, for the benefit of
-computations involving continuous sets `T` is typically given in terms of an
-`AbstractFloat` such as `Float64`.
 """
-abstract type Domain{T} end
-Base.eltype(::Type{<:Domain{T}}) where {T} = T
+abstract type Domain end
 
-## Some aliases
-
-"A `VectorDomain` is any domain whose eltype is `Vector{T}`."
-const VectorDomain{T} = Domain{Vector{T}}
-
-"An `AbstractVectorDomain` is any domain whose eltype is `<:AbstractVector{T}`."
-const AbstractVectorDomain{T} = Domain{<:AbstractVector{T}}
 
 abstract type DomainStyle end
 
@@ -56,7 +40,6 @@ abstract type DomainRef end
 struct AsDomain{D} <: DomainRef
     domain  ::  D
 end
-Base.eltype(::Type{<:AsDomain{D}}) where {D} = eltype(D)
 
 DomainRef(d) = AsDomain(d)
 
