@@ -1,23 +1,27 @@
 module DomainSetsCore
 
-export Domain
+export AbstractDomain,
+    Domain
 
 """
 A domain is a set of elements that is possibly continuous.
 
-Examples may be intervals and triangles. These are geometrical shapes, but more
-generally a domain can be any type that supports `in`. Conceptually, a domain
+Examples include intervals and triangles. These are geometrical shapes, but more
+generally a domain can be any type that supports `in`. Conceptually, the domain
 is the set of all elements `x` for which `in(x, domain)` returns true.
-
-A `Domain{T}` is a domain with elements of type `T`, in analogy with
-`AbstractSet{T}` and `AbstractVector{T}`. The `eltype` of a `Domain{T}` is `T`.
-However, unlike finite sets, the element type of a domain may be somewhat
-ambiguous. For example, the closed interval `1..2` contains any element `x` for
-which `1 <= x <= 2` is true, regardless of its type. Still, for the benefit of
-computations involving continuous sets `T` is typically given in terms of an
-`AbstractFloat` such as `Float64`.
 """
-abstract type Domain{T} end
+abstract type AbstractDomain end
+
+"""
+A `Domain{T}` is a domain with elements of type `T`.
+
+Unlike finite sets, the element type of a domain may be ambiguous. For
+example, the closed interval `1..2` contains any element `x` for which
+`1 <= x <= 2` is true, regardless of its type. A `Domain{T}` may be useful in
+cases where there is an intended element type, for example `Float64` when
+performing calculations.
+"""
+abstract type Domain{T} <: AbstractDomain end
 Base.eltype(::Type{<:Domain{T}}) where {T} = T
 
 ## Some aliases
@@ -39,7 +43,7 @@ struct IsDomain <: DomainStyle end
 struct NotDomain <: DomainStyle end
 
 DomainStyle(::Type) = NotDomain()
-DomainStyle(::Type{<:Domain}) = IsDomain()
+DomainStyle(::Type{<:AbstractDomain}) = IsDomain()
 DomainStyle(::Type{<:AbstractSet}) = IsDomain()
 DomainStyle(::Type{<:AbstractArray}) = IsDomain()
 
