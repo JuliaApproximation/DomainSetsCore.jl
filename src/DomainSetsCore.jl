@@ -1,6 +1,13 @@
 module DomainSetsCore
 
-export Domain
+export Domain,
+    domain,
+    DomainStyle,
+    IsDomain,
+    NotDomain,
+    AsDomain,
+    AnyDomain,
+    checkdomain
 
 """
 A domain is a set of elements that is possibly continuous.
@@ -18,26 +25,21 @@ computations involving continuous sets `T` is typically given in terms of an
 `AbstractFloat` such as `Float64`.
 """
 abstract type Domain{T} end
+
 Base.eltype(::Type{<:Domain{T}}) where {T} = T
 
-## Some aliases
-
-"A `VectorDomain` is any domain whose eltype is `Vector{T}`."
-const VectorDomain{T} = Domain{Vector{T}}
-
-"An `AbstractVectorDomain` is any domain whose eltype is `<:AbstractVector{T}`."
-const AbstractVectorDomain{T} = Domain{<:AbstractVector{T}}
 
 abstract type DomainStyle end
 
 """
     IsDomain()
 
-indicates it satisfies the domain interface, i.e. supports `in`.
+indicates it satisfies the domain interface.
 """
 struct IsDomain <: DomainStyle end
 struct NotDomain <: DomainStyle end
 
+DomainStyle(x) = DomainStyle(typeof(x))
 DomainStyle(::Type) = NotDomain()
 DomainStyle(::Type{<:Domain}) = IsDomain()
 DomainStyle(::Type{<:AbstractSet}) = IsDomain()
@@ -47,17 +49,44 @@ DomainStyle(::Type{<:AbstractArray}) = IsDomain()
 """
 A reference to a domain.
 
-In a function call, `DomainRef(x)` or `AsDomain(x)` can be used to indicate that
-`x` should be treated as a domain in the function. This is similar to `Ref(x)`,
-which is used in broadcast to indicate that `x` should not be iterated over.
+In a function call, `AsDomain(x)` can be used to indicate that `x` should be
+treated as a domain in the function, e.g., `foo(x, AsDomain(d))`.
 """
-abstract type DomainRef end
+abstract type AsDomain end
 
-struct AsDomain{D} <: DomainRef
+"A reference to a specific given domain."
+struct DomainRef{D} <: AsDomain
     domain  ::  D
 end
-Base.eltype(::Type{<:AsDomain{D}}) where {D} = eltype(D)
+Base.eltype(::Type{<:DomainRef{D}}) where {D} = eltype(D)
 
-DomainRef(d) = AsDomain(d)
+domain(d::DomainRef) = d.domain
+domain(d::Domain) = d
+
+AsDomain(d) = DomainRef(d)
+AsDomain(d::Domain) = d
+
+"""
+`AnyDomain` can be a concrete domain or a reference to a domain.
+
+In both cases `domain(d::AnyDomain)` returns the domain itself.
+"""
+const AnyDomain = Union{Domain,AsDomain}
+
+"""
+   checkdomain(d)
+
+Checks that `d` is a domain or refers to a domain and if so returns that domain,
+throws an error otherwise.
+"""
+checkdomain(d::Domain) = d
+# we trust the explicit intention of a user providing a domain reference
+checkdomain(d::AsDomain) = domain(d)
+# for other objects we check DomainStyle
+checkdomain(d) = _checkdomain(d, DomainStyle(d))
+_checkdomain(d, ::IsDomain) = d
+_checkdomain(d, ::NotDomain) =
+    error("Domain does not implement domain interface as indicated by DomainStyle.")
+
 
 end # module DomainSetsCore
