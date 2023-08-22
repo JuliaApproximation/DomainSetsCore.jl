@@ -6,10 +6,24 @@ An interface package for working with domains as continuous sets of elements.
 
 ## The domain interface
 
-A domain is a type that supports `in` and `eltype`. That is, for any given
-object `x` the function call `in(x, domain)` returns whether or not `x` belongs
-to the set. The `eltype` of a domain is an indication of the type of elements of
-the set.
+A domain is a type that supports `in`. That is, for any given object `x` the function call `in(x, domain)` returns whether or not `x` belongs
+to the domain. Hence, the set may be continuous. The `domaineltype` of a domain
+is the `eltype` of any discrete approximation of the continuous set (or just the
+`eltype` of the set if it is discrete).
+
+Examples of domains may be intervals and triangles, vectors and arrays, or
+the set of all orthogonal `3x3` matrices with `Float64` elements.
+
+
+| Required methods | Brief description |
+| ---------------- | ----------------- |
+| `in(x, d)` | Returns `true` when `x` is an element of the domain, `false` otherwise |
+
+| Important optional methods | Default definition | Brief description
+| --- | --- | --- |
+| `domaineltype(d)` | `eltype(typeof(d))` | Returns the type of discrete samples of the domain |
+
+
 
 ## Domains as mathematical sets
 
@@ -17,7 +31,7 @@ Domains are typically defined by a mathematical condition, rather than by type.
 For example, the closed interval `[a,b]` is the set of all values `x` such that
 `a <= x <= b`, irrespective of the type of `x`. Whenever possible, domains
 behave as the mathematical continuous set. Thus, two closed intervals with equal
-endpoints are considered equal, even if they have a different `eltype.`
+endpoints are considered equal, even if they have different types and a different `domaineltype`.
 
 ## The Domain supertype and DomainStyle trait
 
@@ -32,8 +46,8 @@ implement the domain interface by defining
 DomainSetsCore.DomainStyle(d::MyDomain) = IsDomain()
 ```
 
-Numbers, abstract arrays and abstract sets are declared to be domains in this
-package. They all support `in` and `eltype`.
+`Number`s, `AbstractArray`s and `AbstractSet`s are declared to be domains in
+this package.
 
 ## Using the domain interface in practice with `AsDomain`
 

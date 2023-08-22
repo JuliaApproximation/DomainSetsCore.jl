@@ -2,6 +2,7 @@ module DomainSetsCore
 
 export Domain,
     domain,
+    domaineltype,
     DomainStyle,
     IsDomain,
     NotDomain,
@@ -17,16 +18,23 @@ generally a domain can be any type that supports `in`. Conceptually, a domain
 is the set of all elements `x` for which `in(x, domain)` returns true.
 
 A `Domain{T}` is a domain with elements of type `T`, in analogy with
-`AbstractSet{T}` and `AbstractVector{T}`. The `eltype` of a `Domain{T}` is `T`.
-However, unlike finite sets, the element type of a domain may be somewhat
-ambiguous. For example, the closed interval `1..2` contains any element `x` for
-which `1 <= x <= 2` is true, regardless of its type. Still, for the benefit of
-computations involving continuous sets `T` is typically given in terms of an
-`AbstractFloat` such as `Float64`.
+`AbstractSet{T}` and `AbstractVector{T}`. Although domains may be defined by a
+mathematical condition such as `a <= x <= b`, irrespective of the type of `x`,
+points generated to belong to the domain have type `T`.
 """
 abstract type Domain{T} end
 
 Base.eltype(::Type{<:Domain{T}}) where {T} = T
+
+"""
+    domaineltype(d)
+
+The `domaineltype` of a continuous domain is the element type of any
+discretization of that domain.
+"""
+domaineltype(d) = domaineltype(typeof(d))
+domaineltype(::Type{D}) where D = eltype(D)
+domaineltype(d::Domain{T}) where T = T      # shortcut definition
 
 
 abstract type DomainStyle end
@@ -34,18 +42,31 @@ abstract type DomainStyle end
 """
     IsDomain()
 
-indicates it satisfies the domain interface.
+indicates an object implements the domain interface.
 """
 struct IsDomain <: DomainStyle end
+
+"""
+    NotDomain()
+
+indicates an object does not implement the domain interface.
+"""
 struct NotDomain <: DomainStyle end
 
-DomainStyle(x) = DomainStyle(typeof(x))
+
+"""
+    DomainStyle(d)
+
+The domain style of `d` is a trait to indicate whether or not `d` implements
+the domain interface. If so, the object supports `in(x,d)` and optionally also
+implements `domaineltype(d)`.
+"""
+DomainStyle(d) = DomainStyle(typeof(d))
 DomainStyle(::Type) = NotDomain()
 DomainStyle(::Type{<:Domain}) = IsDomain()
 DomainStyle(::Type{<:Number}) = IsDomain()
 DomainStyle(::Type{<:AbstractSet}) = IsDomain()
 DomainStyle(::Type{<:AbstractArray}) = IsDomain()
-
 
 """
 A reference to a domain.
@@ -59,7 +80,7 @@ abstract type AsDomain end
 struct DomainRef{D} <: AsDomain
     domain  ::  D
 end
-Base.eltype(::Type{<:DomainRef{D}}) where {D} = eltype(D)
+Base.eltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
 
 domain(d::DomainRef) = d.domain
 domain(d::Domain) = d
