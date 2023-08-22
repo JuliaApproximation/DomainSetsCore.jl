@@ -2,3 +2,12 @@ name = "DomainSetsCore"
 uuid = "b5e7cfa8-5ebe-46e7-951c-e7d99cb94c6d"
 authors = ["Daan Huybrechs <daan.huybrechs@kuleuven.be>"]
 version = "0.1.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
