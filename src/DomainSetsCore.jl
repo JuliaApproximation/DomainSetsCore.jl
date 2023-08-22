@@ -42,6 +42,7 @@ struct NotDomain <: DomainStyle end
 DomainStyle(x) = DomainStyle(typeof(x))
 DomainStyle(::Type) = NotDomain()
 DomainStyle(::Type{<:Domain}) = IsDomain()
+DomainStyle(::Type{<:Number}) = IsDomain()
 DomainStyle(::Type{<:AbstractSet}) = IsDomain()
 DomainStyle(::Type{<:AbstractArray}) = IsDomain()
 
@@ -87,6 +88,5 @@ checkdomain(d) = _checkdomain(d, DomainStyle(d))
 _checkdomain(d, ::IsDomain) = d
 _checkdomain(d, ::NotDomain) =
     error("Domain does not implement domain interface as indicated by DomainStyle.")
-
 
 end # module DomainSetsCore
