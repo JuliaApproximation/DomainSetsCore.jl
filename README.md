@@ -20,8 +20,8 @@ endpoints are considered equal, even if they have a different `eltype.`
 
 This package defines the abstract type `Domain{T}` of continuous domains with
 elements of type `T`. All types inheriting from it are treated as domains, i.e.,
-as possibly continuous sets of elements. No concrete types are defined in this
-package.
+as possibly continuous sets of elements. No concrete domain types are defined
+in this package.
 
 The package also defines the trait `DomainStyle`. Any type can declare to
 implement the domain interface by defining
@@ -30,11 +30,47 @@ DomainSetsCore.DomainStyle(d::MyDomain) = IsDomain()
 ```
 
 Numbers, abstract arrays and abstract sets are declared to be domains in this
-package.
+package. They all support `in` and `eltype`.
+
+## Using the domain interface in practice with `AsDomain`
+
+The set of types implementing the domain interface is not based on a common
+abstract supertype, but on the `DomainStyle` trait. It is therefore not
+possible to dispatch on the property of being a domain, except for subtypes of `Domain`.
+
+For this reason the package defines the `AsDomain` reference. A user who invokes
+a generic function `foo` and intends for the object `d` to be treated as a
+domain in that function can indicate so by passing `d` "as a domain":
+```julia
+foo(x, AsDomain(d))
+```
+
+Conversely, a developer writing a function that acts on domains can accept
+variables of type `AnyDomain`, the union of `Domain` and `AsDomain`:
+```julia
+foo(x, d::AnyDomain) = ...  # domain(d) is the domain object of d
+```
+
+In the example above the function `foo` is a generic function that may have
+other methods for variables of specific types. If a function is meant to operate
+exclusively on domains, then there is no need for the user to indicate the
+intention. This may instead be reflected in the name of the function, such as `foo_domain`.
+
+An example of this practice is the functionality of `union` in the
+[DomainSets.jl](https://github.com/JuliaApproximation/DomainSets.jl) package.
+The generic function `uniondomain(d1,d2)` returns a set which behaves as the
+mathematical union of `d1` and `d2`. Both variables are interpreted as domains,
+regardless of their types. The same result can be achieved using the general
+syntax of the `∪` operator, but in this case the intention has to be made
+explicit:
+```julia
+AsDomain(d1) ∪ AsDomain(d2)
+```
 
 ## More functionality with domains
 
-Unions and intersections of domains are implemented generically in the
+Unions and intersections of domains, as well as many other set operations, are implemented generically in the
 [DomainSets.jl](https://github.com/JuliaApproximation/DomainSets.jl) package.
+
 Intervals inheriting from the `Domain` supertype are implemented in
 [IntervalSets.jl](https://github.com/JuliaMath/IntervalSets.jl).
