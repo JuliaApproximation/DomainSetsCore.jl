@@ -6,13 +6,15 @@ An interface package for working with domains as continuous sets of elements.
 
 ## The domain interface
 
-A domain is a type that supports `in`. That is, for any given object `x` the function call `in(x, domain)` returns whether or not `x` belongs
+A domain is a set that supports `in`. That is, for any given object `x` the
+function call `in(x, domain)` returns whether or not `x` belongs
 to the domain. Hence, the set may be continuous. The `domaineltype` of a domain
 is the `eltype` of any discrete approximation of the continuous set (or just the
 `eltype` of the set if it is discrete).
 
 Examples of domains may be intervals and triangles, vectors and arrays, or
-the set of all orthogonal `3x3` matrices with `Float64` elements.
+the set of all orthogonal `3x3` matrices with `Float64` elements. The typical
+`domaineltype` of an interval is `Float64`, which is the standard discrete approximation of continuous numbers in Julia.
 
 
 | Required methods | Brief description |
@@ -64,25 +66,26 @@ foo(x, AsDomain(d))
 ```
 
 Conversely, a developer writing a function that acts on domains can accept
-variables of type `AnyDomain`, the union of `Domain` and `AsDomain`:
+variables of type `AnyDomain`, the union of `Domain` and `AsDomain`. The domain
+itself is available as `domain(d)`:
 ```julia
 foo(x, d::AnyDomain) = ...  # domain(d) is the domain object of d
 ```
 
-In the example above the function `foo` is a generic function that may have
-other methods for variables of specific types. If a function is meant to operate
-exclusively on domains, then there is no need for the user to indicate the
-intention. This may instead be reflected in the name of the function, such as `foo_domain`.
+In the example above the function `foo` is a generic function, which may have
+multiple methods for variables of different types. If a function is meant to
+operate exclusively on domains, then there is no need for the user to indicate
+the intention with `AsDomain`. This may instead be reflected in the name of the function, such as `foo_domain`.
 
 An example of this practice is the functionality of `union` in the
 [DomainSets.jl](https://github.com/JuliaApproximation/DomainSets.jl) package.
 The generic function `uniondomain(d1,d2)` returns a set which behaves as the
 mathematical union of `d1` and `d2`. Both variables are interpreted as domains,
 regardless of their types. The same result can be achieved using the general
-syntax of the `∪` operator, but in this case the intention has to be made
-explicit:
+syntax of the `∪` operator, which results in the call `union(d1, d2)`, but in
+this case the intention has to be made explicit:
 ```julia
-AsDomain(d1) ∪ AsDomain(d2)
+AsDomain(d1) ∪ AsDomain(d2) == uniondomain(d1, d2)
 ```
 
 ## More functionality with domains
