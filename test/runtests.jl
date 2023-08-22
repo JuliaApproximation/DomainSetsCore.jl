@@ -23,6 +23,7 @@ d2 = InterfaceDomain()
 @test eltype(d2) == Int
 @test DomainStyle(d2) == IsDomain()
 @test AsDomain(d2) isa DomainSetsCore.DomainRef
+@test eltype(AsDomain(d2)) == eltype(d2)
 @test domain(AsDomain(d2)) == d2
 @test checkdomain(d2) === d2
 @test checkdomain(AsDomain(d2)) === d2

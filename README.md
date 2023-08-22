@@ -1,5 +1,3 @@
-GitHub Actions : [![Build Status](https://github.com/JuliaApproximation/DomainSetsCore.jl/workflows/CI/badge.svg)](https://github.com/JuliaApproximation/DomainSetsCore.jl/actions?query=workflow%3ACI+branch%3Amain)
-
 [![Build Status](https://github.com/JuliaApproximation/DomainSetsCore.jl/workflows/CI/badge.svg)](https://github.com/JuliaApproximation/DomainSetsCore.jl/actions)
 [![Coverage](https://codecov.io/gh/JuliaApproximation/DomainSetsCore.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaApproximation/DomainSetsCore.jl)
 
