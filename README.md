@@ -18,6 +18,7 @@ the set of all orthogonal `3x3` matrices with `Float64` elements.
 | Required methods | Brief description |
 | ---------------- | ----------------- |
 | `in(x, d)` | Returns `true` when `x` is an element of the domain, `false` otherwise |
+| `DomainStyle(d)` | Returns `IsDomain()` if `d` implements this interface |
 
 | Important optional methods | Default definition | Brief description
 | --- | --- | --- |
