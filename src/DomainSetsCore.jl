@@ -81,6 +81,7 @@ struct DomainRef{D} <: AsDomain
     domain  ::  D
 end
 Base.eltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
+domaineltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
 
 domain(d::DomainRef) = d.domain
 domain(d::Domain) = d

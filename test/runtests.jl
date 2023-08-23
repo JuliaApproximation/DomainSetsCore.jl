@@ -5,7 +5,7 @@ using Test
 struct InheritedDomain <: Domain{Int} end
 
 struct InterfaceDomain end
-Base.eltype(::Type{InterfaceDomain}) = Int
+DomainSetsCore.domaineltype(::Type{InterfaceDomain}) = Int
 DomainSetsCore.DomainStyle(::Type{InterfaceDomain}) = IsDomain()
 
 struct NonDomain end
@@ -13,6 +13,7 @@ struct NonDomain end
 d1 = InheritedDomain()
 @test d1 isa Domain
 @test eltype(d1) == Int
+@test domaineltype(d1) == Int
 @test DomainStyle(d1) == IsDomain()
 @test checkdomain(d1) === d1
 @test AsDomain(d1) === d1
@@ -20,10 +21,11 @@ d1 = InheritedDomain()
 
 d2 = InterfaceDomain()
 @test !(d2 isa Domain)
-@test eltype(d2) == Int
+@test domaineltype(d2) == Int
 @test DomainStyle(d2) == IsDomain()
 @test AsDomain(d2) isa DomainSetsCore.DomainRef
-@test eltype(AsDomain(d2)) == eltype(d2)
+@test eltype(AsDomain(d2)) == domaineltype(d2)
+@test domaineltype(AsDomain(d2)) == domaineltype(d2)
 @test domain(AsDomain(d2)) == d2
 @test checkdomain(d2) === d2
 @test checkdomain(AsDomain(d2)) === d2

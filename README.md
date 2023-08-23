@@ -16,17 +16,20 @@ Examples of domains may be intervals and triangles, vectors and arrays, or
 the set of all orthogonal `3x3` matrices with `Float64` elements. The typical
 `domaineltype` of an interval is `Float64`, which is the standard discrete approximation of continuous numbers in Julia.
 
+The interface is formally summarised in the following table:
 
 | Required methods | Brief description |
 | ---------------- | ----------------- |
 | `in(x, d)` | Returns `true` when `x` is an element of the domain, `false` otherwise |
 | `DomainStyle(d)` | Returns `IsDomain()` if `d` implements this interface |
 
+Optional methods include:
+
 | Important optional methods | Default definition | Brief description
 | --- | --- | --- |
 | `domaineltype(d)` | `eltype(typeof(d))` | Returns the type of discrete samples of the domain |
 
-
+Several extensions of this minimal interface are defined in the [DomainSets.jl](https://github.com/JuliaApproximation/DomainSets.jl) package
 
 ## Domains as mathematical sets
 
