@@ -6,17 +6,22 @@ An interface package for working with domains as continuous sets of elements.
 
 ## The domain interface
 
-A domain is a set that supports `in`. That is, for any given object `x` the
-function call `in(x, domain)` returns whether or not `x` belongs
-to the domain. Hence, the set may be continuous. The `domaineltype` of a domain
-is the `eltype` of any discrete approximation of the continuous set (or just the
-`eltype` of the set if it is discrete).
+A domain is a set of elements that is possibly continuous. Membership of the set
+is usually defined by the implementation of `in`, i.e., the function call `in(x, domain)` returns true or false depending on whether or not `x` belongs to the
+set.
 
-Examples of domains may be intervals and triangles, vectors and arrays, or
-the set of all orthogonal `3x3` matrices with `Float64` elements. The typical
-`domaineltype` of an interval is `Float64`, which is the standard discrete approximation of continuous numbers in Julia.
+Domains as continuous sets are typically defined mathematically, and not by an exhaustive listing of their elements. As a consequence, there might not be a
+unique type associated with elements of the domain. Still, the `domaineltype`
+of a domain is the expected element type of a discrete representation of the
+set. For example, the `domaineltype` of an interval may be `Float64`. For finite
+sets, such as an `AbstractArray` or `AbstractSet`, the `domaineltype` agrees
+with the `eltype` of the set. For other domains, where the notion of a
+discretization may not make sense, the `domaineltype` might simply be `Any`.
 
-The interface is formally summarised in the following table:
+Examples of domains may be geometric sets such as intervals and triangles. A
+domain could also be a collection of vectors or arrays, such as the set of all orthogonal `3x3` matrices.
+
+The domain interface is formally summarised in the following table:
 
 | Required methods | Brief description |
 | ---------------- | ----------------- |
@@ -27,17 +32,18 @@ Optional methods include:
 
 | Important optional methods | Default definition | Brief description
 | --- | --- | --- |
-| `domaineltype(d)` | `eltype(typeof(d))` | Returns the type of discrete samples of the domain |
+| `domaineltype(d)` | `eltype(d)` | Returns the expected type of discrete points of the domain |
 
 Several extensions of this minimal interface are defined in the [DomainSets.jl](https://github.com/JuliaApproximation/DomainSets.jl) package
 
 ## Domains as mathematical sets
 
-Domains are typically defined by a mathematical condition, rather than by type.
-For example, the closed interval `[a,b]` is the set of all values `x` such that
+Continuous sets are typically defined by a mathematical condition. For example,
+the closed interval `[a,b]` is the set of all values `x` such that
 `a <= x <= b`, irrespective of the type of `x`. Whenever possible, domains
 behave as the mathematical continuous set. Thus, two closed intervals with equal
-endpoints are considered equal, even if they have different types and a different `domaineltype`.
+endpoints are considered equal domains, even if they have different types and a different `domaineltype`, because the outcome of `in(x, domain)` would be the
+same for either set.
 
 ## The Domain supertype and DomainStyle trait
 

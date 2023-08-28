@@ -80,11 +80,13 @@ abstract type AsDomain end
 struct DomainRef{D} <: AsDomain
     domain  ::  D
 end
-Base.eltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
-domaineltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
-
 domain(d::DomainRef) = d.domain
 domain(d::Domain) = d
+
+Base.eltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
+
+domaineltype(d::AsDomain) = domaineltype(domain(d))
+domaineltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
 
 AsDomain(d) = DomainRef(d)
 AsDomain(d::Domain) = d

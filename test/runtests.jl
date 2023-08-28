@@ -14,6 +14,7 @@ d1 = InheritedDomain()
 @test d1 isa Domain
 @test eltype(d1) == Int
 @test domaineltype(d1) == Int
+@test domaineltype(AsDomain(d1)) == Int
 @test DomainStyle(d1) == IsDomain()
 @test checkdomain(d1) === d1
 @test AsDomain(d1) === d1
@@ -22,6 +23,7 @@ d1 = InheritedDomain()
 d2 = InterfaceDomain()
 @test !(d2 isa Domain)
 @test domaineltype(d2) == Int
+@test domaineltype(AsDomain(d2)) == Int
 @test DomainStyle(d2) == IsDomain()
 @test AsDomain(d2) isa DomainSetsCore.DomainRef
 @test eltype(AsDomain(d2)) == domaineltype(d2)
