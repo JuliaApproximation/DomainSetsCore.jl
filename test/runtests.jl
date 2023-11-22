@@ -39,3 +39,6 @@ d3 = NonDomain()
 @test DomainStyle(2.0) == IsDomain()
 @test DomainStyle([1,2]) == IsDomain()
 @test DomainStyle(Set([1,2])) == IsDomain()
+
+s = "string"
+@test domaineltype(s) == eltype(s)
