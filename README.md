@@ -5,8 +5,9 @@
 An interface package for working with domains as continuous sets of elements.
 
 Examples of domains may be geometric sets such as intervals and triangles,
-or the complex plane without the real line. However, domains are not limited to geometry. A domain could also be a collection of vectors or arrays, such as the
-set of all orthogonal `3x3` matrices.
+or the complex plane without the negative real line. However, domains are not
+limited to geometry. A domain could also be a collection of vectors or arrays,
+such as the set of all orthogonal `3x3` matrices.
 
 Existing types may add the interpretation of being a domain by implementing the
 domain interface. They gain the ability to interact with other domains.
@@ -20,6 +21,18 @@ defined mathematically, not by an exhaustive list of their elements. In practice
 call `in(x, domain)` evaluates to true if the domain contains an element `y`
 such that `y == x`.
 
+#### Incompatible element types
+
+In principle, the function `in(x, domain)` should not throw an exception even
+if the types seem mathematically nonsensical. In that case, the correct return
+value is `false`. This mimicks the behaviour of `in` for finite sets in Julia:
+```julia
+julia> in(rand(3,3), 1:3)
+false
+```
+Indeed, a `3x3` matrix is not equal to any of the numbers `1`, `2` or `3`.
+
+
 ### The `domaineltype` function
 
 The defining mathematical condition of a continuous set might be satisfied by
@@ -27,9 +40,10 @@ variables of different types. Still, the interface defines the `domaineltype`
 of a domain. It is a valid type for elements of the set.
 
 Functions that generate elements of the domain should generate elements
-of that type. As a consequence, for finite sets such as `AbstractArray`s or `AbstractSet`s, the `domaineltype` agrees with the `eltype` of that set. For
+of that type. As a consequence, for finite sets such as an `AbstractArray` or `AbstractSet`, the `domaineltype` agrees with the `eltype` of that set. For
 intervals on the real line, the `domaineltype` might be `Float64`. When there is
 no clear candidate the `domaineltype` might simply be `Any`.
+
 
 ### Minimal formal interface
 
@@ -71,41 +85,47 @@ implement the domain interface by defining
 ```julia
 DomainSetsCore.DomainStyle(d::MyDomain) = IsDomain()
 ```
-`Number`'s, `AbstractArray`'s and `AbstractSet`'s are declared to be domains in
-this package.
+Objects of type `Number`, `AbstractArray` and `AbstractSet` are declared to be
+domains in this package.
 
-## Using the domain interface in practice with `AsDomain`
+## Using the domain interface in practice with `DomainRef`
 
 With the exception of subtypes of `Domain`, the set of types implementing the
 domain interface is not based on a common abstract supertype. Functions that are
 intended to manipulate domains may simply omit the type of the domain in the
-function definition. However, functions defined in other packages can not be
-extended to work for domains using dispatch only, as there is no common type to
-dispatch on. For that reason this package defines the `AsDomain` reference.
+function signature. However, functions defined in other packages can not be
+extended to work for domains, as there is no common type to dispatch on.
+For that reason this package defines the `DomainRef` reference.
 
 In the absence of function ownership, the practice of domain references requires
-active intent both by users and by developers. For a user, passing `AsDomain(d)`
+active intent both by users and by developers. For a user, passing `DomainRef(d)`
 to a function indicates that `d` is to be treated as a domain. For a developer,
-the implementation `foo(d::AsDomain)` may be used to extend the functionality
+the implementation `foo(d::DomainRef)` may be used to extend the functionality
 of `foo` to domains.
 
-Note that `AsDomain(d)` is not in itself a domain, it is merely a reference. The developer of `foo(d::AsDomain)` or of `foo(d::AnyDomain)` may use `domain(d)` to
-access the domain object. Here, `AnyDomain` is the union of `AsDomain` and
+The reference `DomainRef(d)` is not in itself a domain, it is merely a reference.
+The developer of `foo(d::DomainRef)` may use `domain(d)` to access the domain
+object. More generally, one can implement `foo(d::AnyDomain)` and use
+`domain(d)` in the function definition. In that case the user may invoke `foo`
+both indirectly with a domain reference and directly with a concrete subtype of
 `Domain`.
+
 
 ### Example usage
 
 An example of this practice is the functionality of `union` in the
 [DomainSets.jl](https://github.com/JuliaApproximation/DomainSets.jl) package.
-The generic function `uniondomain(d1,d2)` returns a set which behaves as the
-mathematical union of the sets `d1` and `d2`. Both variables are interpreted as
-domains, regardless of their types.
+First, the package defines a generic function `uniondomain(d1,d2)` with no
+restrictions on the types of `d1` and `d2`. The function returns an object that
+behaves as the mathematical union of the two arguments. It always interprets the arguments as domains, regardless of their types.
 
-A user wanting to use the standard `∪` syntax to form the union of domains has
-to make this intention explicit by writing `AsDomain(d1) ∪ AsDomain(d2)`.
+A user wanting to use the standard `∪` syntax for this purpose has to make this intention explicit by writing `DomainRef(d1) ∪ DomainRef(d2)`. The outcome is
+equivalent to `uniondomain(d1, d2)`, and could be different from what `d1 ∪ d2`
+means in other contexts for the combination of types of `d1` and `d2`. That
+original behaviour of `∪`, quite possibly an error in fact, is not changed.
 
 A developer may make the `∪` syntax more accessible to users as follows. As soon
-as one of `d1` or `d2` is a `Domain` or a reference to a domain, the call to
+as one of `d1` or `d2` is a `Domain`, or a reference to a domain, the call to
 `union` can safely be interpreted as the union of domains. Thus, a developer may
 write:
 ```julia
@@ -114,21 +134,26 @@ union(d1, d2::AnyDomain) = uniondomain(d1, domain(d2))
 union(d1::AnyDomain, d2::AnyDomain) = uniondomain(domain(d1),domain(d2))
 ```
 These definitions are safe in the sense that there is no ambiguity and no
-possible clash with any other definition of `union(d1,d2)` in other packages.
+possible clash with any existing definition of `union(d1,d2)` in other packages.
 
 
-## Incompatible element types
+## Package interoperability
 
-In principle, the function `in(x, domain)` should not throw an exception even
-if the types seem mathematically nonsensical. In that case, the correct return
-value is `false`. This mimicks the behaviour of `in` for finite sets in Julia:
-```julia
-julia> in(rand(3,3), 1:3)
-false
-```
-Indeed, a `3x3` matrix is not equal to any of the numbers `1`, `2` or `3`. It
-is simply not a member of the set, even if the comparison to members of the
-set is not sensible.
+The goal of the domain interface is to make objects from different packages
+interoperable with minimal interaction between packages and, thus, maximal
+independence in their development.
+
+Say package A and package B both define a type that can be interpreted as a
+domain, respectively `objectA` and `objectB`. Package C may define the domain
+interface for `objectA` using the `DomainStyle` trait. Package D may similarly
+define the domain interface for `objectB`. Package E could load `DomainSets` and packages C and D. A user of package E can type `uniondomain(objectA,objectB)`.
+
+This construction requires no active collaboration between the developers of
+packages A, B, C, D and E. They can all be developed independently. Package C
+relies on package A and on `DomainSetsCore`. Package D relies on package B and
+on `DomainSetsCore`. Package E relies on packages C, D and `DomainSets`.
+Packages C, D and E could be developed as package extensions.
+
 
 
 ## More functionality with domains

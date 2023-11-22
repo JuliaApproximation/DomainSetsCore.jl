@@ -6,7 +6,7 @@ export Domain,
     DomainStyle,
     IsDomain,
     NotDomain,
-    AsDomain,
+    DomainRef,
     AnyDomain,
     checkdomain
 
@@ -72,33 +72,27 @@ Return a domain associated with the object `d`.
 domain(d::Domain) = d
 
 """
-    AsDomain(d)
+    DomainRef(d)
 
 A reference to a domain.
 
-In a function call, `AsDomain(x)` can be used to indicate that `x` should be
-treated as a domain, e.g., `foo(x, AsDomain(d))`.
+In a function call, `DomainRef(x)` can be used to indicate that `x` should be
+treated as a domain, e.g., `foo(x, DomainRef(d))`.
 """
-abstract type AsDomain end
-
-"A reference to a specific given domain."
-struct DomainRef{D} <: AsDomain
+struct DomainRef{D}
     domain  ::  D
 end
 
 domain(d::DomainRef) = d.domain
-domaineltype(d::AsDomain) = domaineltype(domain(d))
-
-AsDomain(d) = DomainRef(d)
-AsDomain(d::Domain) = d
+domaineltype(d::DomainRef) = domaineltype(domain(d))
 
 
 """
-`AnyDomain` is the union of `Domain` and `AsDomain`.
+`AnyDomain` is the union of `Domain` and `DomainRef`.
 
 In both cases `domain(d::AnyDomain)` returns the domain itself.
 """
-const AnyDomain = Union{Domain,AsDomain}
+const AnyDomain = Union{Domain,DomainRef}
 
 """
    checkdomain(d)
@@ -108,7 +102,7 @@ throws an error otherwise.
 """
 checkdomain(d::Domain) = d
 # we trust the explicit intention of a user providing a domain reference
-checkdomain(d::AsDomain) = domain(d)
+checkdomain(d::DomainRef) = domain(d)
 # for other objects we check DomainStyle
 checkdomain(d) = _checkdomain(d, DomainStyle(d))
 _checkdomain(d, ::IsDomain) = d
