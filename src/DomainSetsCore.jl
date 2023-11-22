@@ -10,33 +10,32 @@ export Domain,
     AnyDomain,
     checkdomain
 
-"""
-A domain is a set of elements that is possibly continuous.
-
-Examples may be intervals and triangles. These are geometrical shapes, but more
-generally a domain can be any type that supports `in`. Conceptually, a domain
-is the set of all elements `x` for which `in(x, domain)` returns true.
-
-A `Domain{T}` is a domain with elements of type `T`, in analogy with
-`AbstractSet{T}` and `AbstractVector{T}`. Although domains may be defined by a
-mathematical condition such as `a <= x <= b`, irrespective of the type of `x`,
-points generated to belong to the domain have type `T`.
-"""
-abstract type Domain{T} end
-
-Base.eltype(::Type{<:Domain{T}}) where {T} = T
 
 """
     domaineltype(d)
 
-The `domaineltype` of a continuous domain is the element type of any
-discretization of that domain.
+The `domaineltype` of a continuous set is a valid type for elements of that set.
+By default it is equal to the `eltype` of `d`, which in turn defaults to `Any`.
 """
-domaineltype(d) = domaineltype(typeof(d))
-domaineltype(::Type{D}) where D = eltype(D)
-domaineltype(d::Domain{T}) where T = T      # shortcut definition
+domaineltype(d) = eltype(d)
 
 
+"""
+A `Domain{T}` is a supertype for domains with `domaineltype` equal to `T`.
+
+In addition, the `eltype` of a `Domain{T}` is also equal to `T`.
+"""
+abstract type Domain{T} end
+
+domaineltype(d::Domain{T}) where T = T
+Base.eltype(::Type{<:Domain{T}}) where T = T
+
+
+"""
+    DomainStyle(d)
+
+Trait to indicate whether or not `d` implements the domain interface.
+"""
 abstract type DomainStyle end
 
 """
@@ -54,25 +53,31 @@ indicates an object does not implement the domain interface.
 struct NotDomain <: DomainStyle end
 
 
-"""
-    DomainStyle(d)
-
-The domain style of `d` is a trait to indicate whether or not `d` implements
-the domain interface. If so, the object supports `in(x,d)` and optionally also
-implements `domaineltype(d)`.
-"""
 DomainStyle(d) = DomainStyle(typeof(d))
+# - the default is no domain
 DomainStyle(::Type) = NotDomain()
+# - subtypes of Domain are domains
 DomainStyle(::Type{<:Domain}) = IsDomain()
+# - declare Number, AbstractSet and AbstractArray to be valid domain types
 DomainStyle(::Type{<:Number}) = IsDomain()
 DomainStyle(::Type{<:AbstractSet}) = IsDomain()
 DomainStyle(::Type{<:AbstractArray}) = IsDomain()
 
+
 """
+    domain(d)
+
+Return a domain associated with the object `d`.
+"""
+domain(d::Domain) = d
+
+"""
+    AsDomain(d)
+
 A reference to a domain.
 
 In a function call, `AsDomain(x)` can be used to indicate that `x` should be
-treated as a domain in the function, e.g., `foo(x, AsDomain(d))`.
+treated as a domain, e.g., `foo(x, AsDomain(d))`.
 """
 abstract type AsDomain end
 
@@ -80,19 +85,16 @@ abstract type AsDomain end
 struct DomainRef{D} <: AsDomain
     domain  ::  D
 end
+
 domain(d::DomainRef) = d.domain
-domain(d::Domain) = d
-
-Base.eltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
-
 domaineltype(d::AsDomain) = domaineltype(domain(d))
-domaineltype(::Type{<:DomainRef{D}}) where D = domaineltype(D)
 
 AsDomain(d) = DomainRef(d)
 AsDomain(d::Domain) = d
 
+
 """
-`AnyDomain` can be a concrete domain or a reference to a domain.
+`AnyDomain` is the union of `Domain` and `AsDomain`.
 
 In both cases `domain(d::AnyDomain)` returns the domain itself.
 """
