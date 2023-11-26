@@ -12,7 +12,7 @@ struct NonDomain end
 
 d1 = InheritedDomain()
 @test d1 isa Domain
-@test eltype(d1) == Int
+@test eltype(d1) == Any
 @test domaineltype(d1) == Int
 @test domaineltype(DomainRef(d1)) == Int
 @test DomainStyle(d1) == IsDomain()

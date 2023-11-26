@@ -28,7 +28,6 @@ In addition, the `eltype` of a `Domain{T}` is also equal to `T`.
 abstract type Domain{T} end
 
 domaineltype(d::Domain{T}) where T = T
-Base.eltype(::Type{<:Domain{T}}) where T = T
 
 
 """
